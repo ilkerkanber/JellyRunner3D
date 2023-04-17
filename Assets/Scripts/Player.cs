@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
     Vector3 firstPos;
     float difInputPosX;
     float resultTempPosX;
-    
+    bool IsConverting;
     void Awake()
     {
         ObjectManager.Player = this;
@@ -57,27 +57,26 @@ public class Player : MonoBehaviour
                 resultTempPosX = Mathf.Clamp(transform.position.x + difInputPosX, boundLimitsX.x, boundLimitsX.y);
                 transform.position = new Vector3(resultTempPosX, transform.position.y, transform.position.z);
                 firstPos = Input.mousePosition;
-            }
-            if (Input.GetMouseButtonUp(0))
-            {
-                if (mod == Mod.Small)
-                {
-                    StartCoroutine(SetBigMod());
-                }
-                else
+                if (mod == Mod.Big && difInputPosX!=0 && !IsConverting)
                 {
                     StartCoroutine(SetSmallMod());
                 }
             }
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.up * difInputPosX * 8f), Time.deltaTime * 5f);
+            if (Input.GetMouseButtonUp(0) && !IsConverting)
+            {
+                StartCoroutine(SetBigMod());
+            }
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.up * difInputPosX * 5f), Time.deltaTime * 5f);
         }
     }
     IEnumerator SetSmallMod()
     {
+        IsConverting = true;
+        mod = Mod.Small;
         float durationBigJelly = 0.3f;
         float durationSmallJelly = 0.15f;
         bigJelly.SmallModActivated(durationBigJelly);
-        yield return new WaitForSeconds(durationBigJelly);
+        yield return new WaitForSeconds(durationBigJelly+0.1f);
         BigMod.gameObject.SetActive(false);
         SmallMod.gameObject.SetActive(true);
         int centerPoint = 0;
@@ -98,13 +97,15 @@ public class Player : MonoBehaviour
                 rndPosZ = transform.position.z;
 
             }
-            item.SeperateMod(new Vector3(rndPosX, 0, rndPosZ), durationSmallJelly);
+            item.SeperateMod(new Vector3(rndPosX, 0.45f, rndPosZ), durationSmallJelly);
             centerPoint++;
         }
-        mod = Mod.Small;
+        IsConverting = false;
     }
     IEnumerator SetBigMod()
     {
+        IsConverting = true;
+        mod = Mod.Big;
         float duration = 0.5f;
         foreach (Jelly item in jellyList)
         {
@@ -114,7 +115,7 @@ public class Player : MonoBehaviour
         BigMod.gameObject.SetActive(true);
         SmallMod.gameObject.SetActive(false);
         bigJelly.BigModActivated(duration/2f);
-        mod = Mod.Big;
+        IsConverting = false;
     }
     #region Jumps
     public void StartedJumpMod_Small(Vector3 sPoint)

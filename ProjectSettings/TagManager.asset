@@ -9,6 +9,7 @@ TagManager:
   - WallDetector_Big
   - FanDetector
   - Lava
+  - ThornObstacle
   layers:
   - Default
   - TransparentFX

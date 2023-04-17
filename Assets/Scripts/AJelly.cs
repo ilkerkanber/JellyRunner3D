@@ -43,5 +43,9 @@ public abstract class AJelly : MonoBehaviour
     {
         animator.SetTrigger("Fall");
     }
+    protected void Big_DeadThornAnim() 
+    {
+        animator.SetTrigger("ThornDie");
+    }
     #endregion
 }

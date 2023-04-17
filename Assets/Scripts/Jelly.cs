@@ -38,9 +38,13 @@ public class Jelly : AJelly
     #region MODS
     public void SeperateMod(Vector3 pos,float duration)
     {
+        transform.DOMove(pos, duration).OnComplete(()=>SeperateCompleted());
+    }
+    void SeperateCompleted()
+    {
+        transform.rotation = Quaternion.EulerRotation(Vector3.zero);
         agent.enabled = true;
         col.enabled = true;
-        transform.DOMove(pos, duration).OnComplete(()=>transform.rotation=Quaternion.EulerRotation(Vector3.zero));
     }
     public void MergeMod(float duration)
     {
@@ -68,7 +72,6 @@ public class Jelly : AJelly
         blobSequence.Append(transform.DOScale(fScale * 1.5f, 0.3f));
         blobSequence.Append(transform.DOScale(fScale, 0.3f));
     }
-   
     public void Dead()
     {
         transform.parent = null;
@@ -100,6 +103,10 @@ public class Jelly : AJelly
     }
     void OnTriggerEnter(Collider col)
     {
+        if (_gameManager.state == GameManager.GameState.End)
+        {
+            return;
+        }
         if (col.CompareTag("Jelly"))
         {
             if (_player.GetListControl(this, col.GetComponent<Jelly>()))

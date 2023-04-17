@@ -8,8 +8,8 @@ public class ParticleManager : MonoBehaviour
     [SerializeField] ParticleSystem wallDamageParticle;
     [SerializeField] ParticleSystem jellyMergeParticle;
     [SerializeField] ParticleSystem lavaParticle;
+    [SerializeField] ParticleSystem punchParticle;
     [SerializeField] GameObject feetSplash;
-
     void Awake()
     {
         ObjectManager.ParticleManager = this;
@@ -30,6 +30,10 @@ public class ParticleManager : MonoBehaviour
     public void LavaParticle(Vector3 pos)
     {
         ExecuteParticle(pos, lavaParticle);
+    }
+    public void PunchParticle(Vector3 pos)
+    {
+        ExecuteParticle(pos, punchParticle);
     }
     void InstantiateFeetSplash(int count)
     {

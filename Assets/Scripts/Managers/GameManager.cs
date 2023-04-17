@@ -9,6 +9,16 @@ public class GameManager : MonoBehaviour
     public enum GameState { 
         Start,Playing,End
     }
+    void OnEnable()
+    {
+        EventManager.WinGame += StopGame;
+        EventManager.LoseGame += StopGame;
+    }
+    void OnDisable()
+    {
+        EventManager.WinGame -= StopGame;
+        EventManager.LoseGame -= StopGame;
+    }
     void Awake()
     {
         ObjectManager.GameManager = this;
@@ -29,5 +39,9 @@ public class GameManager : MonoBehaviour
         {
             state = GameState.End;
         }
+    }
+    void StopGame()
+    {
+       state=GameState.End;
     }
 }

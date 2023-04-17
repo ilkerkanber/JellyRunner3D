@@ -5,4 +5,7 @@ using UnityEngine;
 
 public static class EventManager 
 {
+    public static Action LoseGame;
+    public static Action WinGame;
+
 }

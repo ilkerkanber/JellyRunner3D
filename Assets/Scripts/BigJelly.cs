@@ -7,12 +7,16 @@ using UnityEngine.AI;
 public class BigJelly : AJelly
 {
     public float size;
+    SkinnedMeshRenderer meshRenderer;
+    Color firstColor;
     void Start()
     {
+        meshRenderer=transform.GetChild(0).GetComponent<SkinnedMeshRenderer>();
         _gameManager = ObjectManager.GameManager;
         _particleManager = ObjectManager.ParticleManager;
         _player = ObjectManager.Player;
         mod = Mod.Run;
+        firstColor=meshRenderer.material.color;
     }
     void Update()
     {
@@ -26,7 +30,7 @@ public class BigJelly : AJelly
             {
                 RunAnim();
             }
-            size = _player.jellyList.Count*0.5f;
+            size = 1.5f + _player.jellyList.Count*0.3f;
             transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one * size, Time.deltaTime * 10f);
         }
     }
@@ -37,7 +41,7 @@ public class BigJelly : AJelly
     public void BigModActivated(float scaleDuration)
     {
         transform.localScale = Vector3.one;
-        size = _player.jellyList.Count*0.5f;
+        size = 1.5f + _player.jellyList.Count * 0.3f;
         transform.DOScale(size, scaleDuration);
     }
     void Root_AnimStarted()
@@ -51,6 +55,21 @@ public class BigJelly : AJelly
         animator.applyRootMotion = false;
         col.isTrigger = true;
         agent.enabled = true;
+    }
+    void DamageColor()
+    {
+        if(_gameManager.state == GameManager.GameState.Playing) 
+        {
+            Sequence seq = DOTween.Sequence();
+            seq.Append(meshRenderer.material.DOColor(Color.black, 0.3f));
+            seq.Append(meshRenderer.material.DOColor(firstColor, 0.3f));
+        }
+    }
+    void DeadThorn()
+    {
+        DamageColor();
+        Big_DeadThornAnim();
+        EventManager.LoseGame();
     }
     void OnTriggerEnter(Collider targetCol)
     {
@@ -69,6 +88,11 @@ public class BigJelly : AJelly
         {
             _particleManager.LavaParticle(targetCol.ClosestPoint(transform.position)+Vector3.up);
             _player.Damaged(1);
+            DamageColor();
+        }
+        else if (targetCol.CompareTag("ThornObstacle"))
+        {
+            DeadThorn();
         }
     }
     void OnTriggerExit(Collider targetCol)
