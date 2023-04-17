@@ -647,8 +647,8 @@ GameObject:
   - component: {fileID: 765314221336582445}
   - component: {fileID: 5732876462024132719}
   - component: {fileID: 1876038816255589675}
-  - component: {fileID: 5224459160580619727}
   - component: {fileID: 947771922805665562}
+  - component: {fileID: 2352254965254045339}
   m_Layer: 0
   m_Name: Jelly
   m_TagString: Jelly
@@ -717,34 +717,12 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6283943435936193005}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   m_Radius: 0.43
   m_Height: 1.96
   m_Direction: 1
   m_Center: {x: 0, y: 0.92, z: 0}
---- !u!195 &5224459160580619727
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6283943435936193005}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.59
-  m_Speed: 0
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 0
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 0
 --- !u!114 &947771922805665562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -759,6 +737,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mod: 0
   InPlayer: 0
+  RFeetTransform: {fileID: 5371039761740627985}
+  LFeetTransform: {fileID: 4049917904212153588}
+--- !u!195 &2352254965254045339
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6283943435936193005}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.29
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 10
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 1
 --- !u!1 &6296513486277741967
 GameObject:
   m_ObjectHideFlags: 0

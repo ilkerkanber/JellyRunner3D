@@ -4,12 +4,20 @@ using UnityEngine;
 
 public class ParticleManager : MonoBehaviour
 {
+    Queue<GameObject> feetSplashPool;
     [SerializeField] ParticleSystem wallDamageParticle;
     [SerializeField] ParticleSystem jellyMergeParticle;
+    [SerializeField] ParticleSystem lavaParticle;
+    [SerializeField] GameObject feetSplash;
 
     void Awake()
     {
         ObjectManager.ParticleManager = this;
+    }
+    void Start()
+    {
+        feetSplashPool= new Queue<GameObject>();
+        InstantiateFeetSplash(200);
     }
     public void WallDamageParticle(Vector3 pos)
     {
@@ -18,6 +26,36 @@ public class ParticleManager : MonoBehaviour
     public void JellyMergeParticle(Vector3 pos)
     {
         ExecuteParticle(pos, jellyMergeParticle);
+    }
+    public void LavaParticle(Vector3 pos)
+    {
+        ExecuteParticle(pos, lavaParticle);
+    }
+    void InstantiateFeetSplash(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            GameObject cr = Instantiate(feetSplash, Vector3.zero, Quaternion.identity, transform);
+            feetSplashPool.Enqueue(cr);
+            cr.SetActive(false);
+        }
+    }
+    public void GetFeetSplash(Vector3 pos)
+    {
+        if(feetSplashPool.Count == 0)
+        {
+            InstantiateFeetSplash(50);
+        }
+        GameObject get = feetSplashPool.Dequeue();
+        get.SetActive(true);
+        get.transform.position = pos+Vector3.up*0.2f;
+        StartCoroutine(SetFeetSplashToPool(get));
+    }
+    IEnumerator SetFeetSplashToPool(GameObject feetObj)
+    {
+        yield return new WaitForSeconds(3f);
+        feetObj.SetActive(false);
+        feetSplashPool.Enqueue(feetObj);
     }
     void ExecuteParticle(Vector3 pos,ParticleSystem targetParticle)
     {

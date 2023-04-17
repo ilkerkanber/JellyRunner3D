@@ -39,5 +39,9 @@ public abstract class AJelly : MonoBehaviour
     {
         animator.SetTrigger("WallDead");
     }
+    protected void FallAnim()
+    {
+        animator.SetTrigger("Fall");
+    }
     #endregion
 }

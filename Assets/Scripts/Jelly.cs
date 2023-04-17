@@ -8,6 +8,8 @@ using UnityEngine.UI;
 public class Jelly : AJelly
 {
     public bool InPlayer;
+    public Transform RFeetTransform;
+    public Transform LFeetTransform;
 
     void Start()
     {
@@ -33,11 +35,12 @@ public class Jelly : AJelly
             }
         }
     }
-    public void SeperateMod(Vector3 localPos,float duration)
+    #region MODS
+    public void SeperateMod(Vector3 pos,float duration)
     {
         agent.enabled = true;
         col.enabled = true;
-        transform.DOLocalMove(localPos, duration);
+        transform.DOMove(pos, duration).OnComplete(()=>transform.rotation=Quaternion.EulerRotation(Vector3.zero));
     }
     public void MergeMod(float duration)
     {
@@ -45,11 +48,13 @@ public class Jelly : AJelly
         col.enabled = false;
         transform.DOLocalJump(Vector3.zero, 1, 1, duration);
     }
+    #endregion
     void JoinToPlayer()
     {
-        if (_player.mod== Player.Mod.Small)
+        if (_player.mod == Player.Mod.Small)
         {
             _player.jellyList.Add(this);
+            gameObject.layer = 3;
             InPlayer = true;
             transform.parent = ObjectManager.Player.SmallMod;
             mod = Mod.Run;
@@ -64,7 +69,7 @@ public class Jelly : AJelly
         blobSequence.Append(transform.DOScale(fScale, 0.3f));
     }
    
-    void Dead()
+    public void Dead()
     {
         transform.parent = null;
         rb.isKinematic = true;
@@ -73,12 +78,31 @@ public class Jelly : AJelly
         _player.jellyList.Remove(this);
         _gameManager.FailControl();
     }
-    void OnCollisionEnter(Collision collision)
+    public void SetNavMeshEnable(bool st)
     {
-        Collider col = collision.collider;
+        agent.enabled = st;
+    }
+    public void RFeetSplash()
+    {
+        if (_player.IsJumping)
+        {
+            return;
+        }
+        _particleManager.GetFeetSplash(RFeetTransform.position);
+    }
+    public void LFeetSplash()
+    {
+        if (_player.IsJumping)
+        {
+            return;
+        }
+        _particleManager.GetFeetSplash(LFeetTransform.position);
+    }
+    void OnTriggerEnter(Collider col)
+    {
         if (col.CompareTag("Jelly"))
         {
-            if (_player.GetListControl(this, collision.collider.GetComponent<Jelly>()))
+            if (_player.GetListControl(this, col.GetComponent<Jelly>()))
             {
                 JoinToPlayer();
             }
@@ -88,6 +112,14 @@ public class Jelly : AJelly
             _particleManager.WallDamageParticle(transform.position + Vector3.up);
             WallDeadAnim();
             Dead();
+        }
+        else if (col.CompareTag("FanDetector"))
+        {
+            if (!_player.IsJumping)
+            {
+                col.transform.root.TryGetComponent<Fan>(out Fan fan);
+                _player.StartedJumpMod_Small(fan.JumpLastPoint.position);
+            }
         }
     }
 }

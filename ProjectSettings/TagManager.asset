@@ -6,11 +6,14 @@ TagManager:
   tags:
   - Jelly
   - Wall
+  - WallDetector_Big
+  - FanDetector
+  - Lava
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Jelly
   - Water
   - UI
   - 
