@@ -22,7 +22,7 @@ public class SideFan : MonoBehaviour
         if (impactList.Count > 0)
         {
             forceTimer+= Time.deltaTime;    
-            if(forceTimer > 0.5f)
+            if(forceTimer > 0.1f)
             {
                 foreach(Rigidbody item in impactList) 
                 {

@@ -25,10 +25,13 @@ public class Player : MonoBehaviour
     GameManager _gameManager;
 
     public bool IsJumping { get; private set; }
+    public bool IsDropping{ get; set; }
+
     Vector3 firstPos;
     float difInputPosX;
     float resultTempPosX;
     bool IsConverting;
+    bool clicked;
     void Awake()
     {
         ObjectManager.Player = this;
@@ -43,38 +46,56 @@ public class Player : MonoBehaviour
     }
     void InputController()
     {
-        if(IsJumping) { return; }
+        if(IsJumping) {
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.zero), Time.deltaTime * 10f);
+            clicked = false;
+            return; }
         if (_gameManager.state == GameManager.GameState.Playing)
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
-            if (Input.GetMouseButtonDown(0))
+            if (!IsDropping)
             {
-                firstPos = Input.mousePosition;
-            }
-            if (Input.GetMouseButton(0))
-            {
-                difInputPosX = ((firstPos.x - Input.mousePosition.x) / -swerveSensitivity) / Screen.width;
-                resultTempPosX = Mathf.Clamp(transform.position.x + difInputPosX, boundLimitsX.x, boundLimitsX.y);
-                transform.position = new Vector3(resultTempPosX, transform.position.y, transform.position.z);
-                firstPos = Input.mousePosition;
-                if (mod == Mod.Big && difInputPosX!=0 && !IsConverting)
+                if (Input.GetMouseButtonDown(0))
                 {
-                    StartCoroutine(SetSmallMod());
+                    clicked = true;
+                    firstPos = Input.mousePosition;
+                }
+                if (Input.GetMouseButton(0))
+                {
+                    if (!clicked)
+                    {
+                        clicked = true;
+                        firstPos = Input.mousePosition;
+                    }
+                    difInputPosX = ((firstPos.x - Input.mousePosition.x) / -swerveSensitivity) / Screen.width;
+                    resultTempPosX = Mathf.Clamp(transform.position.x + difInputPosX, boundLimitsX.x, boundLimitsX.y);
+                    transform.position = new Vector3(resultTempPosX, transform.position.y, transform.position.z);
+                    firstPos = Input.mousePosition;
+                    if (mod == Mod.Big && !IsConverting)
+                    {
+                        StartCoroutine(SetSmallMod());
+                    }
+                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.up * difInputPosX * 5f), Time.deltaTime * 10f);
+                }
+                if (Input.GetMouseButtonUp(0) && !IsConverting)
+                {
+                    clicked = false;
+                    difInputPosX = firstPos.x;
+                    StartCoroutine(SetBigMod());
+                }
+                if (!clicked)
+                {
+                    transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.zero), Time.deltaTime * 10f);
                 }
             }
-            if (Input.GetMouseButtonUp(0) && !IsConverting)
-            {
-                StartCoroutine(SetBigMod());
-            }
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.EulerRotation(Vector3.up * difInputPosX * 5f), Time.deltaTime * 5f);
         }
     }
     IEnumerator SetSmallMod()
     {
         IsConverting = true;
         mod = Mod.Small;
-        float durationBigJelly = 0.3f;
-        float durationSmallJelly = 0.15f;
+        float durationBigJelly = 0.15f;
+        float durationSmallJelly = 0.1f;
         bigJelly.SmallModActivated(durationBigJelly);
         yield return new WaitForSeconds(durationBigJelly+0.1f);
         BigMod.gameObject.SetActive(false);
@@ -89,24 +110,23 @@ public class Player : MonoBehaviour
             boundRightX = Mathf.Clamp(boundRightX, transform.position.x, transform.position.x + 2f);
 
             float rndPosX = Random.Range(boundLeftX, boundRightX);
-            float rndPosZ = Random.Range(transform.position.z - 2f, transform.position.z);
+            float rndPosZ = Random.Range(-1f, 0.3f);
             rndPosX = Mathf.Clamp(rndPosX, navMeshBoundLimitX.x, navMeshBoundLimitX.y);
             if (centerPoint == 0)
             {
-                rndPosX = transform.position.x;
-                rndPosZ = transform.position.z;
-
+                item.SeperateMod(transform.position.x,transform.position.y, 0f, durationSmallJelly);
             }
-            item.SeperateMod(new Vector3(rndPosX, 0.45f, rndPosZ), durationSmallJelly);
+            item.SeperateMod(rndPosX, transform.position.y, rndPosZ, durationSmallJelly);
             centerPoint++;
         }
         IsConverting = false;
     }
+   
     IEnumerator SetBigMod()
     {
         IsConverting = true;
         mod = Mod.Big;
-        float duration = 0.5f;
+        float duration = 0.2f;
         foreach (Jelly item in jellyList)
         {
             item.MergeMod(duration);
@@ -124,6 +144,7 @@ public class Player : MonoBehaviour
         IsJumping = true;
         foreach (Jelly item in jellyList)
         {
+            item.ResetLocalRotation();
             item.SetNavMeshEnable(false);
         }
         transform.DOJump(sPoint, 20f, 2, 2f).OnComplete(()=>EndJumpMod_Small());
@@ -137,8 +158,9 @@ public class Player : MonoBehaviour
             item.SetNavMeshEnable(true);
         }
     }
-    public void StartedJumpMod_Big(Vector3 tPoint,NavMeshAgent bJellAgent)
+    public void StartedJumpMod_Big(Vector3 tPoint, NavMeshAgent bJellAgent)
     {
+        bigJelly.ResetLocalRotation();
         IsJumping = true;
         bJellAgent.enabled = false;
         transform.DOJump(tPoint, 9, 1, 2f).SetEase(Ease.Linear).OnComplete(() =>EndJumpMod_Big(bJellAgent));
@@ -147,6 +169,25 @@ public class Player : MonoBehaviour
     {
         bJellAgent.enabled = true;
         IsJumping = false;
+    }
+    public void StartedDroppingMOD(float targetY,float duration)
+    {
+        transform.rotation = Quaternion.Euler(Vector3.zero);
+        IsDropping = true;
+        foreach (Jelly item in jellyList)
+        {
+            item.ResetLocalRotation();
+            item.SetNavMeshEnable(false);
+        }
+        transform.DOMoveY(targetY, duration).OnComplete(() =>EndDroppingMOD());
+    }
+    void EndDroppingMOD()
+    {
+        IsDropping = false;
+        foreach (Jelly item in jellyList)
+        {
+            item.SetNavMeshEnable(true);
+        }
     }
     #endregion
 

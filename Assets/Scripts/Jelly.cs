@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
+using static UnityEditor.PlayerSettings;
 
 public class Jelly : AJelly
 {
@@ -36,13 +38,15 @@ public class Jelly : AJelly
         }
     }
     #region MODS
-    public void SeperateMod(Vector3 pos,float duration)
+    public void SeperateMod(float posX,float posY,float localPosZ, float duration)
     {
-        transform.DOMove(pos, duration).OnComplete(()=>SeperateCompleted());
+        transform.DOMoveX(posX,duration);
+        transform.DOMoveY(posY, duration);
+        transform.DOLocalMoveZ(localPosZ, duration+0.02f).OnComplete(()=>SeperateCompleted());
     }
     void SeperateCompleted()
     {
-        transform.rotation = Quaternion.EulerRotation(Vector3.zero);
+        ResetLocalRotation();
         agent.enabled = true;
         col.enabled = true;
     }
@@ -50,7 +54,7 @@ public class Jelly : AJelly
     {
         agent.enabled = false;
         col.enabled = false;
-        transform.DOLocalJump(Vector3.zero, 1, 1, duration);
+        transform.DOLocalJump(new Vector3(0,transform.localPosition.y,0f), 1, 1, duration);
     }
     #endregion
     void JoinToPlayer()
@@ -62,6 +66,7 @@ public class Jelly : AJelly
             InPlayer = true;
             transform.parent = ObjectManager.Player.SmallMod;
             mod = Mod.Run;
+            ResetLocalRotation();
             Blob();
         }
     }
@@ -72,12 +77,18 @@ public class Jelly : AJelly
         blobSequence.Append(transform.DOScale(fScale * 1.5f, 0.3f));
         blobSequence.Append(transform.DOScale(fScale, 0.3f));
     }
+    void DieScalerY()
+    {
+        animator.enabled = false;
+        transform.DOScaleY(0.1f, 0.4f);
+    }
     public void Dead()
     {
+        col.enabled = false;
+        InPlayer = false;
         transform.parent = null;
         rb.isKinematic = true;
         agent.enabled = false;
-        col.isTrigger = true;
         _player.jellyList.Remove(this);
         _gameManager.FailControl();
     }
@@ -87,7 +98,7 @@ public class Jelly : AJelly
     }
     public void RFeetSplash()
     {
-        if (_player.IsJumping)
+        if (_player.IsJumping || _player.IsDropping)
         {
             return;
         }
@@ -95,11 +106,15 @@ public class Jelly : AJelly
     }
     public void LFeetSplash()
     {
-        if (_player.IsJumping)
+        if (_player.IsJumping || _player.IsDropping)
         {
             return;
         }
         _particleManager.GetFeetSplash(LFeetTransform.position);
+    }
+    public void ResetLocalRotation()
+    {
+        transform.DOLocalRotateQuaternion(Quaternion.Euler(Vector3.zero), 0.2f);
     }
     void OnTriggerEnter(Collider col)
     {
@@ -120,13 +135,19 @@ public class Jelly : AJelly
             WallDeadAnim();
             Dead();
         }
-        else if (col.CompareTag("FanDetector"))
+        else if (col.CompareTag("FanJumperDetector"))
         {
             if (!_player.IsJumping)
             {
                 col.transform.root.TryGetComponent<Fan>(out Fan fan);
-                _player.StartedJumpMod_Small(fan.JumpLastPoint.position);
+                _player.StartedJumpMod_Small(fan.smallJelly_LastPoint.position);
             }
+        }
+        else if (col.CompareTag("Knife") || col.CompareTag("Axe"))
+        {
+            Dead();
+            DieScalerY();
+            _particleManager.BloodDamageParticle(transform.position);
         }
     }
 }

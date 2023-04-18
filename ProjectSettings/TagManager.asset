@@ -10,6 +10,9 @@ TagManager:
   - FanDetector
   - Lava
   - ThornObstacle
+  - FanJumperDetector
+  - Knife
+  - Axe
   layers:
   - Default
   - TransparentFX

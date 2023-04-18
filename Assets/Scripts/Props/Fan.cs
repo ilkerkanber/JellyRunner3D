@@ -6,7 +6,8 @@ public class Fan : MonoBehaviour
 {
     [SerializeField] float rotateSpeed;
     [SerializeField] Transform fan;
-    public Transform JumpLastPoint;
+    public Transform smallJelly_LastPoint;
+    public Transform bigJelly_LastPoint;
     public Transform LavaPoint;
 
     void Update()

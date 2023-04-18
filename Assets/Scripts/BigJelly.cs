@@ -71,6 +71,10 @@ public class BigJelly : AJelly
         Big_DeadThornAnim();
         EventManager.LoseGame();
     }
+    public void ResetLocalRotation()
+    {
+        transform.DOLocalRotateQuaternion(Quaternion.Euler(Vector3.zero), 0.2f);
+    }
     void OnTriggerEnter(Collider targetCol)
     {
         if (targetCol.CompareTag("WallDetector_Big"))
@@ -78,9 +82,9 @@ public class BigJelly : AJelly
             JumpAnim();
             Root_AnimStarted();
         }
-        else if (targetCol.CompareTag("FanDetector"))
+        else if (targetCol.CompareTag("FanJumperDetector"))
         {
-            Vector3 targetPos = targetCol.transform.root.GetComponent<Fan>().LavaPoint.position;
+            Vector3 targetPos = targetCol.transform.root.GetComponent<Fan>().bigJelly_LastPoint.position;
             _player.StartedJumpMod_Big(targetPos,agent);
             FallAnim();
         }
@@ -93,6 +97,12 @@ public class BigJelly : AJelly
         else if (targetCol.CompareTag("ThornObstacle"))
         {
             DeadThorn();
+        }
+        else if (targetCol.CompareTag("Knife")|| targetCol.CompareTag("Axe"))
+        {
+            DamageColor();
+            _player.Damaged(1);
+            _particleManager.BloodDamageParticle(transform.position);
         }
     }
     void OnTriggerExit(Collider targetCol)
