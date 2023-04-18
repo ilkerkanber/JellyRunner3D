@@ -15,7 +15,7 @@ public abstract class AJelly : MonoBehaviour
     protected GameManager _gameManager;
     protected ParticleManager _particleManager;
     protected Player _player;
-    void Awake()
+    protected void GetBasicComponents()
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();

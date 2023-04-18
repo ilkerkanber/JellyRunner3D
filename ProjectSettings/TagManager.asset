@@ -13,6 +13,8 @@ TagManager:
   - FanJumperDetector
   - Knife
   - Axe
+  - StartFinishMod
+  - IsNearDetector
   layers:
   - Default
   - TransparentFX

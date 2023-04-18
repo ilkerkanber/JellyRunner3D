@@ -7,15 +7,17 @@ public class GameManager : MonoBehaviour
 {
     public GameState state;
     public enum GameState { 
-        Start,Playing,End
+        Tutorial,Playing,End
     }
     void OnEnable()
     {
+        EventManager.StartGame += StartGame;
         EventManager.WinGame += StopGame;
         EventManager.LoseGame += StopGame;
     }
     void OnDisable()
     {
+        EventManager.StartGame -= StartGame;
         EventManager.WinGame -= StopGame;
         EventManager.LoseGame -= StopGame;
     }
@@ -25,11 +27,11 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
-        if(state == GameState.Start)
+        if(state == GameState.Tutorial)
         {
             if(Input.GetMouseButtonDown(0)) 
             {
-                state = GameState.Playing;
+                EventManager.StartGame();
             }
         }
     }
@@ -37,11 +39,15 @@ public class GameManager : MonoBehaviour
     {
         if (ObjectManager.Player.jellyList.Count==0) 
         {
-            state = GameState.End;
+            EventManager.LoseGame();
         }
+    }
+    void StartGame()
+    {
+       state = GameState.Playing;
     }
     void StopGame()
     {
-       state=GameState.End;
+       state = GameState.End;
     }
 }

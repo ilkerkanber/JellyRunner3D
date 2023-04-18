@@ -2,17 +2,19 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using static UnityEditor.PlayerSettings;
 
 public class Jelly : AJelly
 {
     public bool InPlayer;
     public Transform RFeetTransform;
     public Transform LFeetTransform;
-
+    [SerializeField] Transform EmojiesParentTransform;
+    List<ParticleSystem> emojiesList;
+    void Awake()
+    {
+        GetBasicComponents();
+        emojiesList = new List<ParticleSystem>();
+    }
     void Start()
     {
         _gameManager = ObjectManager.GameManager;
@@ -22,6 +24,11 @@ public class Jelly : AJelly
         {
             mod = Mod.Run;
         }
+        for (int i = 0; i < EmojiesParentTransform.childCount; i++)
+        {
+            emojiesList.Add(EmojiesParentTransform.GetChild(i).GetComponent<ParticleSystem>());
+        }
+        StartCoroutine(EmojiesController_Loop(70f));
     }
     void Update()
     {
@@ -92,6 +99,11 @@ public class Jelly : AJelly
         _player.jellyList.Remove(this);
         _gameManager.FailControl();
     }
+    public void DumpDie()
+    {
+        Dead();
+        DieScalerY();
+    }
     public void SetNavMeshEnable(bool st)
     {
         agent.enabled = st;
@@ -115,6 +127,18 @@ public class Jelly : AJelly
     public void ResetLocalRotation()
     {
         transform.DOLocalRotateQuaternion(Quaternion.Euler(Vector3.zero), 0.2f);
+    }
+    IEnumerator EmojiesController_Loop(float rngBound)
+    {
+        float rng = Random.Range(0, 101);
+        if (rng <= rngBound && InPlayer)
+        {
+            int totalEmojies = emojiesList.Count;
+            int rnd = Random.Range(0, totalEmojies);
+            emojiesList[rnd].Play();
+        }
+        yield return new WaitForSeconds(2f);
+        StartCoroutine(EmojiesController_Loop(rngBound));
     }
     void OnTriggerEnter(Collider col)
     {
@@ -143,11 +167,25 @@ public class Jelly : AJelly
                 _player.StartedJumpMod_Small(fan.smallJelly_LastPoint.position);
             }
         }
-        else if (col.CompareTag("Knife") || col.CompareTag("Axe"))
+        else if (col.CompareTag("Knife") || col.CompareTag("Axe") || col.CompareTag("Lava"))
         {
-            Dead();
-            DieScalerY();
+            DumpDie();
             _particleManager.BloodDamageParticle(transform.position);
+        }
+        else if (col.CompareTag("IsNearDetector"))
+        {
+            _player.IsNearObstacle = true;
+        }
+        else if (col.CompareTag("StartFinishMod"))
+        {
+            EventManager.StartFinishMod();
+        }
+    }
+    void OnTriggerExit(Collider other)
+    {
+        if (col.CompareTag("IsNearDetector"))
+        {
+            _player.IsNearObstacle = false;
         }
     }
 }

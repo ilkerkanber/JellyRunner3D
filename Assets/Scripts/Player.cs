@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Player : MonoBehaviour
 {
@@ -23,15 +22,24 @@ public class Player : MonoBehaviour
     public Transform BigMod;
 
     GameManager _gameManager;
-
+    public bool IsNearObstacle;
     public bool IsJumping { get; private set; }
     public bool IsDropping{ get; set; }
+    bool IsFinishMod;
 
     Vector3 firstPos;
     float difInputPosX;
     float resultTempPosX;
     bool IsConverting;
     bool clicked;
+    void OnEnable()
+    {
+        EventManager.StartFinishMod += SetFinishMod;    
+    }
+    void OnDisable()
+    {
+        EventManager.StartFinishMod -= SetFinishMod;
+    }
     void Awake()
     {
         ObjectManager.Player = this;
@@ -71,7 +79,7 @@ public class Player : MonoBehaviour
                     resultTempPosX = Mathf.Clamp(transform.position.x + difInputPosX, boundLimitsX.x, boundLimitsX.y);
                     transform.position = new Vector3(resultTempPosX, transform.position.y, transform.position.z);
                     firstPos = Input.mousePosition;
-                    if (mod == Mod.Big && !IsConverting)
+                    if (mod == Mod.Big && !IsConverting && !IsFinishMod)
                     {
                         StartCoroutine(SetSmallMod());
                     }
@@ -81,7 +89,10 @@ public class Player : MonoBehaviour
                 {
                     clicked = false;
                     difInputPosX = firstPos.x;
-                    StartCoroutine(SetBigMod());
+                    if (!IsFinishMod)
+                    {
+                        StartCoroutine(SetBigMod());
+                    }
                 }
                 if (!clicked)
                 {
@@ -92,50 +103,55 @@ public class Player : MonoBehaviour
     }
     IEnumerator SetSmallMod()
     {
-        IsConverting = true;
-        mod = Mod.Small;
-        float durationBigJelly = 0.15f;
-        float durationSmallJelly = 0.1f;
-        bigJelly.SmallModActivated(durationBigJelly);
-        yield return new WaitForSeconds(durationBigJelly+0.1f);
-        BigMod.gameObject.SetActive(false);
-        SmallMod.gameObject.SetActive(true);
-        int centerPoint = 0;
-        foreach (Jelly item in jellyList)
+        if (!IsNearObstacle)
         {
-            float boundLeftX = navMeshBoundLimitX.x - transform.position.x;
-            float boundRightX = navMeshBoundLimitX.y + transform.position.x;
-
-            boundLeftX = Mathf.Clamp(boundLeftX, transform.position.x - 2f, transform.position.x);
-            boundRightX = Mathf.Clamp(boundRightX, transform.position.x, transform.position.x + 2f);
-
-            float rndPosX = Random.Range(boundLeftX, boundRightX);
-            float rndPosZ = Random.Range(-1f, 0.3f);
-            rndPosX = Mathf.Clamp(rndPosX, navMeshBoundLimitX.x, navMeshBoundLimitX.y);
-            if (centerPoint == 0)
+            IsConverting = true;
+            mod = Mod.Small;
+            float durationSmallJelly = 0.1f;
+            ObjectManager.ParticleManager.JellyMergeParticle(transform.position);
+            BigMod.gameObject.SetActive(false);
+            SmallMod.gameObject.SetActive(true);
+            int centerPoint = 0;
+            foreach (Jelly item in jellyList)
             {
-                item.SeperateMod(transform.position.x,transform.position.y, 0f, durationSmallJelly);
+                float boundLeftX = navMeshBoundLimitX.x - transform.position.x;
+                float boundRightX = navMeshBoundLimitX.y + transform.position.x;
+
+                boundLeftX = Mathf.Clamp(boundLeftX, transform.position.x - 2f, transform.position.x);
+                boundRightX = Mathf.Clamp(boundRightX, transform.position.x, transform.position.x + 2f);
+
+                float rndPosX = Random.Range(boundLeftX, boundRightX);
+                float rndPosZ = Random.Range(-1f, 0.3f);
+                rndPosX = Mathf.Clamp(rndPosX, navMeshBoundLimitX.x, navMeshBoundLimitX.y);
+                if (centerPoint == 0)
+                {
+                    item.SeperateMod(transform.position.x, transform.position.y, 0f, durationSmallJelly);
+                }
+                item.SeperateMod(rndPosX, transform.position.y, rndPosZ, durationSmallJelly);
+                centerPoint++;
             }
-            item.SeperateMod(rndPosX, transform.position.y, rndPosZ, durationSmallJelly);
-            centerPoint++;
+            yield return new WaitForSeconds(durationSmallJelly);
+            IsConverting = false;
         }
-        IsConverting = false;
     }
-   
     IEnumerator SetBigMod()
     {
-        IsConverting = true;
-        mod = Mod.Big;
-        float duration = 0.2f;
-        foreach (Jelly item in jellyList)
+        if(!IsNearObstacle)
         {
-            item.MergeMod(duration);
+            IsConverting = true;
+            mod = Mod.Big;
+            float duration = 0.1f;
+            foreach (Jelly item in jellyList)
+            {
+                item.MergeMod(duration);
+            }
+            yield return new WaitForSeconds(duration);
+            ObjectManager.ParticleManager.JellyMergeParticle(transform.position);
+            BigMod.gameObject.SetActive(true);
+            SmallMod.gameObject.SetActive(false);
+            bigJelly.transform.localScale = Vector3.one;
+            IsConverting = false;
         }
-        yield return new WaitForSeconds(duration);
-        BigMod.gameObject.SetActive(true);
-        SmallMod.gameObject.SetActive(false);
-        bigJelly.BigModActivated(duration/2f);
-        IsConverting = false;
     }
     #region Jumps
     public void StartedJumpMod_Small(Vector3 sPoint)
@@ -157,6 +173,7 @@ public class Player : MonoBehaviour
         {
             item.SetNavMeshEnable(true);
         }
+        IsNearObstacle = false;
     }
     public void StartedJumpMod_Big(Vector3 tPoint, NavMeshAgent bJellAgent)
     {
@@ -169,6 +186,7 @@ public class Player : MonoBehaviour
     {
         bJellAgent.enabled = true;
         IsJumping = false;
+        IsNearObstacle = false;
     }
     public void StartedDroppingMOD(float targetY,float duration)
     {
@@ -188,9 +206,15 @@ public class Player : MonoBehaviour
         {
             item.SetNavMeshEnable(true);
         }
+        IsNearObstacle = false;
     }
     #endregion
 
+    void SetFinishMod()
+    {
+        IsFinishMod = true;
+        StartCoroutine(SetBigMod());
+    }
     public void Damaged(int damageCount)
     {
         for (int i = 0; i < damageCount; i++)

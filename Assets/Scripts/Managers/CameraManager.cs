@@ -8,10 +8,16 @@ public class CameraManager : MonoBehaviour
     [SerializeField] float lerpSmoothValue;
     GameObject player;
     Vector3 difStartToPlayer;
+    public Camera cam { get; private set; }
+    private void Awake()
+    {
+        ObjectManager.CameraManager = this;
+    }
     void Start()
     {
         player = ObjectManager.Player.gameObject;
         difStartToPlayer = player.transform.position - transform.position;
+        cam=transform.GetChild(0).GetComponent<Camera>();
     }
     
     void Update()

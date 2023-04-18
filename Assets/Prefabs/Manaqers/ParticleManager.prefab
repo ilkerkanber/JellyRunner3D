@@ -45,3 +45,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wallDamageParticle: {fileID: 19835194, guid: f6ac01c8c44430d46815af0e77bdcfdd, type: 3}
+  jellyMergeParticle: {fileID: 1504845851982401764, guid: 25030982adcd59943b47ce810eced629, type: 3}
+  lavaParticle: {fileID: 8134024953205639247, guid: 2e9df12e4d5a7d54aaa7e2a63da9c5a3, type: 3}
+  punchParticle: {fileID: 7018575537926918906, guid: 19dc8a6b4caace844a66a37a3778565d, type: 3}
+  bloodParticle: {fileID: 191377426724986122, guid: f41b8f4eefebbcf488841a95cdbd11b1, type: 3}
+  goldEarnParticle: {fileID: 3705645352156593698, guid: a0fd941989f18134597dab87512cc617, type: 3}
+  mineParticle: {fileID: 1644464387550316986, guid: d64052f439c2feb45b01d9d610f64ea9, type: 3}
+  feetSplash: {fileID: 6757067800467261664, guid: 36c2e33b2e230374a9efe3bcd1e07ea5, type: 3}
+  failParticle: {fileID: 6329657125493290691, guid: 9fc834f15ac3c9342a6f2b1b02d0a7a0, type: 3}

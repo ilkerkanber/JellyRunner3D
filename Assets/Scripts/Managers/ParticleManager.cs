@@ -10,8 +10,22 @@ public class ParticleManager : MonoBehaviour
     [SerializeField] ParticleSystem lavaParticle;
     [SerializeField] ParticleSystem punchParticle;
     [SerializeField] ParticleSystem bloodParticle;
+    [SerializeField] ParticleSystem goldEarnParticle;
+    [SerializeField] ParticleSystem mineParticle;
 
     [SerializeField] GameObject feetSplash;
+    [Space]
+    [SerializeField] ParticleSystem failParticle;
+    void OnEnable()
+    {
+        EventManager.LoseGame += FailParticle;
+        EventManager.EarnGold += EarnGoldParticle;
+    }
+    void OnDisable()
+    {
+        EventManager.LoseGame -= FailParticle;
+        EventManager.EarnGold -= EarnGoldParticle;
+    }
     void Awake()
     {
         ObjectManager.ParticleManager = this;
@@ -40,6 +54,18 @@ public class ParticleManager : MonoBehaviour
     public void BloodDamageParticle(Vector3 pos)
     {
         ExecuteParticle(pos, bloodParticle);
+    }
+    public void MineBombParticle(Vector3 pos)
+    {
+        ExecuteParticle(pos, mineParticle);
+    }
+    void EarnGoldParticle(Vector3 pos)
+    {
+        ExecuteParticle(pos, goldEarnParticle);
+    }
+    void FailParticle()
+    {
+        ExecuteParticle(ObjectManager.Player.transform.position + Vector3.up*2f, failParticle);
     }
     void InstantiateFeetSplash(int count)
     {
