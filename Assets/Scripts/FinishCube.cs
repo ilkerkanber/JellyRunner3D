@@ -5,4 +5,5 @@ using UnityEngine;
 public class FinishCube : MonoBehaviour
 {
     public int value;
+    public GameObject bloodImage;
 }

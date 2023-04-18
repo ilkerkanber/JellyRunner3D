@@ -47,14 +47,14 @@ public class BigJelly : AJelly
 
                 if (size < 1f)
                 {
-                    EventManager.LoseGame();
+                    DieScalerY();
+                    EventManager.WinGame();
                 }
             }
             else
             {
                 size = 1.5f + _player.jellyList.Count*0.3f;
                 transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one * size, Time.deltaTime * 10f);
-
             }
         }
     }
@@ -81,6 +81,7 @@ public class BigJelly : AJelly
     }
     void DeadThorn()
     {
+        col.enabled = false;
         DamageColor();
         Big_DeadThornAnim();
         EventManager.LoseGame();
@@ -134,11 +135,17 @@ public class BigJelly : AJelly
         {
             DieScalerY();
             extraPoint = finishCube.value;
+            finishCube.bloodImage.SetActive(true);
             EventManager.WinGame();
+        }
+        else if(targetCol.TryGetComponent<BadJelly>(out BadJelly badJelly))
+        {
+            badJelly.DieScalerY();
         }
         else if (targetCol.CompareTag("StartFinishMod"))
         {
             InFinishMod = true;
+            EventManager.StartFinishMod();
         }
     }
     void OnTriggerExit(Collider targetCol)

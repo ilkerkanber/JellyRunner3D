@@ -7,7 +7,7 @@ using UnityEngine.AI;
 public class Player : MonoBehaviour
 {
     public List<Jelly> jellyList;
-    [SerializeField] BigJelly bigJelly;
+    public BigJelly bigJelly;
     public Mod mod;
     public enum Mod { Small,Big }
 

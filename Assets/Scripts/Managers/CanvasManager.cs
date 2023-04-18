@@ -8,14 +8,20 @@ using UnityEngine.SceneManagement;
 
 public class CanvasManager : MonoBehaviour
 {
+    public GameData GameData;
+    [SerializeField] TextMeshProUGUI levelText;
     [SerializeField] GameObject StateParent;
     [SerializeField] TextMeshProUGUI goldTmPro;
     [SerializeField] GameObject goldImage;
     [SerializeField] GameObject InstantiteGold2D;
-
+    [Header("ForWin")]
+    [SerializeField] TextMeshProUGUI bonusXTmPro;
+    [SerializeField] TextMeshProUGUI resultTmPro;
+    [SerializeField] Transform moneyGroupTransform;
+    [SerializeField] List<GameObject> moneyImageList;
     Vector3 fScaleGoldTmPro;
     int goldCount;
-
+    int lastPoint;
     void OnEnable()
     {
         EventManager.StartGame += InGame;
@@ -37,6 +43,14 @@ public class CanvasManager : MonoBehaviour
     void Start()
     {
         TutorialGame();
+        DataManager.LoadData(GameData);
+        goldCount = GameData.Money;
+        goldTmPro.text = GameData.Money.ToString();
+        levelText.text = GameData.Level.ToString();
+    }
+    void ActivateOnlyCanvas(int i)
+    {
+        StateParent.transform.GetChild(i).gameObject.SetActive(true);
     }
     void SetCanvas(int on)
     {
@@ -57,10 +71,32 @@ public class CanvasManager : MonoBehaviour
     void WinGame()
     {
         SetCanvas(2);
+        ActivateOnlyCanvas(1);
+        StartCoroutine(WinGoldSend());
     }
     void FailGame()
     {
         SetCanvas(3);
+    }
+    IEnumerator WinGoldSend()
+    {
+        int extraBonus = ObjectManager.Player.bigJelly.extraPoint;
+        bonusXTmPro.text ="x"+extraBonus.ToString();
+        int totalPoint = ObjectManager.Player.jellyList.Count*extraBonus;
+        resultTmPro.text=totalPoint.ToString();
+        yield return new WaitForSeconds(1f);
+        moneyGroupTransform.gameObject.SetActive(true);
+        yield return new WaitForSeconds(0.2f);
+        int child= moneyGroupTransform.childCount;
+        for (int i = 0; i < child; i++)
+        {
+            Transform curTr = moneyGroupTransform.GetChild(0).transform;
+            curTr.parent = goldImage.transform;
+            curTr.DOLocalMove(Vector3.zero, 0.5f).OnComplete(()=>curTr.gameObject.SetActive(false));
+        }
+        yield return new WaitForSeconds(0.5f);
+        lastPoint = goldCount + totalPoint;
+        goldTmPro.text = lastPoint.ToString();
     }
     void GoldSend(Vector3 pos)
     {
@@ -79,8 +115,22 @@ public class CanvasManager : MonoBehaviour
         goldTmPro.text = goldCount.ToString();
         Destroy(gold);
     }
+    public void NextButton()
+    {
+        GameData.Money = lastPoint;
+        if (SceneManager.sceneCountInBuildSettings-1 == GameData.Level)
+        {
+            GameData.Level = 1;
+        }
+        else
+        {
+            GameData.Level++;
+        }
+        DataManager.SaveData(GameData);
+        SceneManager.LoadScene(GameData.Level);
+    }
     public void RestartButton()
     {
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(GameData.Level);
     }
 }

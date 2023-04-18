@@ -10,8 +10,12 @@ public class ParticleManager : MonoBehaviour
     [SerializeField] ParticleSystem lavaParticle;
     [SerializeField] ParticleSystem punchParticle;
     [SerializeField] ParticleSystem bloodParticle;
+    [SerializeField] ParticleSystem bloodParticle_Black;
+
     [SerializeField] ParticleSystem goldEarnParticle;
     [SerializeField] ParticleSystem mineParticle;
+    [SerializeField] ParticleSystem badJellyPunchParticle;
+
 
     [SerializeField] GameObject feetSplash;
     [Space]
@@ -55,9 +59,17 @@ public class ParticleManager : MonoBehaviour
     {
         ExecuteParticle(pos, bloodParticle);
     }
+    public void BloodDamageParticle_Black(Vector3 pos)
+    {
+        ExecuteParticle(pos, bloodParticle_Black);
+    }
     public void MineBombParticle(Vector3 pos)
     {
         ExecuteParticle(pos, mineParticle);
+    }
+    public void BadJellyPunchParticle(Vector3 pos)
+    {
+        ExecuteParticle(pos, badJellyPunchParticle);
     }
     void EarnGoldParticle(Vector3 pos)
     {
